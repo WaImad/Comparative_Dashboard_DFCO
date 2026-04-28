@@ -1,38 +1,44 @@
-name: Actualisation des données R
+name: Actualisation et Déploiement Shiny
 
 on:
   schedule:
-    # Tous les lundis à 3h00 du matin
     - cron: '0 3 * * 1'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   mise-a-jour:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Autorise l'écriture sur le dépôt
-
+      contents: write
     steps:
-      - name: 1. Récupérer les fichiers du dépôt
+      - name: 1. Récupérer les fichiers
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # IMPORTANT : permet de charger tout l'historique pour éviter les conflits
 
       - name: 2. Installer R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.4'
-          use-public-rspm: true # Installation rapide des packages
+          use-public-rspm: true
 
-      - name: 3. Installer les packages R nécessaires
-        run: Rscript -e 'install.packages(c("readr", "dplyr", "googlesheets4","tidyverse"))'
+      - name: 3. Installer les packages
+        run: Rscript -e 'install.packages(c("readr", "dplyr", "googlesheets4", "rsconnect"))'
 
       - name: 4. Exécuter le script de traitement
         run: Rscript traitement_df.R
 
-      - name: 5. Sauvegarder le nouveau fichier data_gps.csv sur GitHub
+      - name: 5. Sauvegarder le fichier sur GitHub (Méthode Robuste)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Actualisation automatique de data_gps.csv"
+          file_pattern: 'data_gps.csv'
+
+      - name: 6. Déployer sur Shinyapps.io
+        env:
+          NAME: ${{ secrets.SHINYAPPS_NAME }}
+          TOKEN: ${{ secrets.SHINYAPPS_TOKEN }}
+          SECRET: ${{ secrets.SHINYAPPS_SECRET }}
         run: |
-          git config --local user.name "GitHub Actions Bot"
-          git config --local user.email "actions@github.com"
-          git add data_gps.csv
-          git commit -m "Actualisation automatique de data_gps.csv" || echo "Aucune modification trouvée"
-          git pull --rebase origin main
-          git push
+          Rscript -e "rsconnect::setAccountInfo(name='$NAME', token='$TOKEN', secret='$SECRET')"
+          Rscript -e "rsconnect::deployApp(appName = 'NOM_DE_VOTRE_APPLI_SUR_SHINYAPPS')"
