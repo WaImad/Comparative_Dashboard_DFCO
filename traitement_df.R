@@ -38,11 +38,11 @@ all_data_u19 <- recup_data(url_sheet_u19)
 # pour savoir d'où vient chaque ligne.
 df <- bind_rows(
   "Pros" = all_data_pro, 
-  "Formation" = all_data_n3, 
-  "Reserve" = all_data_u19, 
+  "Reserve" = all_data_n3, 
+  "Formation" = all_data_u19, 
   .id = "Niveau"
 )
 
 # On sauvegarde en local
-write.csv(df, "data_gps.csv", row.names = FALSE)
+write.csv(df, "app/data_gps.csv", row.names = FALSE)
 print("Fichier CSV actualisé !")
