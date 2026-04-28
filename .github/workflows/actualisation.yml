@@ -19,6 +19,7 @@ jobs:
       - name: 2. Installer R
         uses: r-lib/actions/setup-r@v2
         with:
+          r-version: '4.4'
           use-public-rspm: true # Installation rapide des packages
 
       - name: 3. Installer les packages R nécessaires
