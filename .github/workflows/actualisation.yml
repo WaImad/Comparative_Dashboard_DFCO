@@ -28,11 +28,24 @@ jobs:
       - name: 4. Exécuter le script de traitement
         run: Rscript traitement_df.R
 
-      - name: 5. Sauvegarder le fichier sur GitHub (Méthode Robuste)
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Actualisation automatique de data_gps.csv"
-          file_pattern: 'data_gps.csv'
+      - name: 5. Sauvegarder le fichier sur GitHub
+        run: |
+          git config --local user.name "GitHub Actions Bot"
+          git config --local user.email "actions@github.com"
+          
+          # On s'assure que le robot est bien sur la branche principale
+          git fetch origin main
+          git checkout main
+          
+          # On ajoute et on valide le nouveau fichier
+          git add data_gps.csv
+          git commit -m "Actualisation automatique de data_gps.csv" || echo "Aucune modification trouvée"
+          
+          # On fusionne proprement (rebase) pour éviter tout conflit
+          git pull --rebase origin main
+          
+          # On envoie le fichier
+          git push origin main
 
       - name: 6. Déployer sur Shinyapps.io
         env:
