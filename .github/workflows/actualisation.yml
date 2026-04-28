@@ -54,4 +54,4 @@ jobs:
           SECRET: ${{ secrets.SHINYAPPS_SECRET }}
         run: |
           Rscript -e "rsconnect::setAccountInfo(name='$NAME', token='$TOKEN', secret='$SECRET')"
-          Rscript -e "rsconnect::deployApp(appName = 'ComparativeDashboardDFCO')"
+          Rscript -e "rsconnect::deployApp(appName = 'ComparativeDashboardDFCO',forceUpdate = TRUE)"
