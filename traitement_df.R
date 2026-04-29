@@ -44,5 +44,5 @@ df <- bind_rows(
 )
 
 # On sauvegarde en local
-write.csv(df, "app/data_gps.csv", row.names = FALSE)
+write.csv(df, "data_gps.csv", row.names = FALSE)
 print("Fichier CSV actualisé !")
