@@ -23,7 +23,7 @@ jobs:
           use-public-rspm: true
 
       - name: 3. Installer les packages
-        run: Rscript -e 'install.packages(c("readr", "dplyr", "googlesheets4", "rsconnect","tidyverse","shiny","bslib"))'
+        run: Rscript -e 'install.packages(c("readr", "dplyr", "googlesheets4", "rsconnect","tidyverse","shiny","bslib","bsicons","plotly","DT","scales"))'
 
       - name: 4. Exécuter le script de traitement
         run: Rscript traitement_df.R
