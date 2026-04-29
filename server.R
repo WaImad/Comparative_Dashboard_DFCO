@@ -211,7 +211,7 @@ function(input, output, session) {
           showticklabels = FALSE # On cache les chiffres pour l'esthétisme
         )
       ),
-      title = list(text = "<b>Comparaison des performances d'effort</b>", x = 0.5),
+      title = list(text = "<b>Comparaison des performances athlétiques (Valeurs Max) </b>", x = 0.5),
       showlegend = TRUE,
       margin = list(t = 80, b = 40),
       paper_bgcolor = 'rgba(0,0,0,0)', 
@@ -221,5 +221,167 @@ function(input, output, session) {
     
     # Affichage
     p
+  })
+  
+  # Statistique individuelle du joueur 1 (vue globale)
+  output$stats_saison_j1 <- renderUI({
+    req(input$joueur1)
+    
+    infos <- df |> filter(NOM == input$joueur1)
+    
+    # Extrait les infos du joueurs
+    nom_joueur <- input$joueur1
+    poste_joueur <- infos$POSTE[1]
+    niveau_joueur <- infos$Niveau[1]
+    
+    #Calculs et Arrondis propres
+    nb_matchs <- nrow(infos)
+    temps_jeu <- sum(infos$TEMPS.DE.JEU, na.rm = TRUE)
+    
+    # Alerte si temps de jeu non significatif
+    alerte_temps <- if (temps_jeu < 250) {
+      div(
+        style = "background-color: #fff3cd !important; color: #856404 !important; 
+               border: 1px solid #ffeeba !important; border-radius: 4px; 
+               padding: 8px; margin-bottom: 15px; font-size: 0.85rem; display: flex; align-items: center;",
+        span("⚠️", style = "margin-right: 8px; font-size: 1.1rem;"),
+        "Attention : Temps de jeu faible. Les moyennes et les valeurs max peuvent être peu représentatives."
+      )
+    } else {
+      NULL
+    }
+    
+    # Arrondi à 0 décimale pour les mètres, et formatage des milliers (ex: 11 500)
+    dist_moy <- round(mean(infos$TOTAL.DISTANCE, na.rm = TRUE), 0)
+    dist_moy_format <- format(dist_moy, big.mark = " ", scientific = FALSE)
+    
+    # Arrondi à 1 décimale pour les sprints (ex: 14.2)
+    sprint_moy <- round(mean(infos$NB.SPRINT...25, na.rm = TRUE), 1)
+    
+    # Création de la carte (Design blanc, épuré et moderne)
+    card(
+      class = "shadow-sm border",
+      style = "background-color: #ffffff ; border-radius: 8px;", # Forcer le blanc
+      
+      card_header(
+        
+        class = "fg-dark border-bottom pt-3 pb-2",
+        style= "background-color: #ffffff;",
+        
+        div(
+          class = "d-flex justify-content-between align-items-center",
+          h4(nom_joueur, class = "mb-0 fw-bold text-primary"),
+          span(poste_joueur, class = "badge bg-dark text-fg rounded-pill px-3 py-2 fs-6"),
+          span(niveau_joueur, class = "badge bg-dark text-fg rounded-pill px-3 py-2 fs-6")
+        )
+      ),
+      
+      card_body(
+        class = "pt-4 pb-4",
+        alerte_temps, # Affiche l'alerte si nécessaire
+        fluidRow(
+          
+          column(3, class = "text-center border-end", 
+                 p("Matchs joués", class = "text-dark mb-1 fs-6"), 
+                 h3(nb_matchs, class = "text-dark fw-bold mb-0")
+          ),
+          
+          column(3, class = "text-center border-end", 
+                 p("Temps de jeu", class = "text-dark mb-1 fs-6"), 
+                 h3(paste0(temps_jeu, " min"), class = "text-dark fw-bold mb-0")
+          ),
+         
+          column(3, class = "text-center border-end", 
+                 p("Distance moy. / match", class = "text-dark mb-1 fs-6"), 
+                 h3(paste0(dist_moy_format, " m"), class = "text-dark fw-bold mb-0")
+          ),
+          
+          column(3, class = "text-center", 
+                 p("Sprints > 25 / match", class = "text-dark mb-1 fs-6"), 
+                 h3(sprint_moy, class = "text-dark fw-bold mb-0")
+          )
+        )
+      )
+    )
+  })
+  
+  # Statistique individuelle du joueur 2 (vue globale)
+  output$stats_saison_j2 <- renderUI({
+    # On s'assure qu'un joueur 2 est sélectionné et que la comparaison est activée
+    req(input$joueur1, input$joueur2, input$activer_comp)
+    
+    # Filtrage des données pour le Joueur 2
+    infos <- df |> filter(NOM == input$joueur2)
+    
+    # Si le joueur n'a pas de données, on s'arrête
+    if(nrow(infos) == 0) return(NULL)
+    
+    # Extraction du profil
+    nom_joueur <- input$joueur2
+    poste_joueur <- infos$POSTE[1]
+    niveau_joueur <- infos$Niveau[1]
+    
+    # Calculs et Arrondis (Identique au J1 pour une comparaison juste)
+    nb_matchs <- nrow(infos)
+    temps_jeu <- sum(infos$TEMPS.DE.JEU, na.rm = TRUE)
+    
+    # Alerte si temps de jeu non significatif
+    alerte_temps <- if (temps_jeu < 250) {
+      div(
+        style = "background-color: #fff3cd !important; color: #856404 !important; 
+               border: 1px solid #ffeeba !important; border-radius: 4px; 
+               padding: 8px; margin-bottom: 15px; font-size: 0.85rem; display: flex; align-items: center;",
+        span("⚠️", style = "margin-right: 8px; font-size: 1.1rem;"),
+        "Attention : Temps de jeu faible. Les moyennes et les valeurs max peuvent être peu représentatives.(En effet, si un joueur joue 4 minutes et qu'il se donne à fond, on obtiendra des valeurs élevées en valeurs max)"
+      )
+    } else {
+      NULL
+    }
+    
+    dist_moy <- round(mean(infos$TOTAL.DISTANCE, na.rm = TRUE), 0)
+    dist_moy_format <- format(dist_moy, big.mark = " ", scientific = FALSE)
+    
+    sprint_moy <- round(mean(infos$NB.SPRINT...25, na.rm = TRUE), 1)
+  
+    card(
+      class = "shadow-sm border",
+      style = "background-color: #ffffff; border-radius: 8px;",
+      
+      
+      card_header(
+        class = "fg-white border-bottom pt-3 pb-2",
+        div(
+          class = "d-flex justify-content-between align-items-center",
+          # On utilise la couleur du j2 rouge
+          h4(nom_joueur, class = "mb-0 fw-bold text-danger"), 
+          span(poste_joueur, class = "badge bg-light text-secondary border rounded-pill px-3 py-2 fs-6"),
+          span(niveau_joueur, class = "badge bg-light text-secondary border rounded-pill px-3 py-2 fs-6")
+        )
+      ),
+      
+      
+      card_body(
+        class = "pt-4 pb-4",
+        alerte_temps, # Affiche l'alerte si nécessaire
+        fluidRow(
+          column(3, class = "text-center border-end", 
+                 p("Matchs joués", class = "text-dark mb-1 fs-6"), 
+                 h3(nb_matchs, class = "text-dark fw-bold mb-0")
+          ),
+          column(3, class = "text-center border-end", 
+                 p("Temps de jeu", class = "text-dark mb-1 fs-6"), 
+                 h3(paste0(temps_jeu, " min"), class = "text-dark fw-bold mb-0")
+          ),
+          column(3, class = "text-center border-end", 
+                 p("Distance moy. / match", class = "text-dark mb-1 fs-6"), 
+                 h3(paste0(dist_moy_format, " m"), class = "text-dark fw-bold mb-0")
+          ),
+          column(3, class = "text-center", 
+                 p("Sprints > 25 / match", class = "text-dark mb-1 fs-6"), 
+                 h3(sprint_moy, class = "text-dark fw-bold mb-0")
+          )
+        )
+      )
+    )
   })
 }

@@ -8,7 +8,7 @@ library(googlesheets4)
 
 # Définition du thème de l'app
 theme_dfco <- bs_theme(
-  bg = "#07101f",        # rouge nuit très profond (Fond de l'application)
+  bg = "#07101f",        
   fg = "#F8F9FA", 
   "navbar-bg" = "#d40028",
   primary = "#07101f",   # Le rouge du logo du DFCO
@@ -30,7 +30,7 @@ page_navbar(
       height = "80px", 
       style = "margin-right: 10px;"
     ), 
-    "Comparative Dashboard | N3-N1"
+    "Comparative Dashboard | Pros vs Formation"
  ),
  # BARRE LATÉRALE 
  sidebar = sidebar(
@@ -38,7 +38,7 @@ page_navbar(
    width = 350,
    id = "ma_sidebar",
    h4("Filtres de selection"),
-   actionButton("refresh", "Actualiser les données", icon = icon("sync")),
+   #actionButton("refresh", "Actualiser les données", icon = icon("sync")),
    selectizeInput("niveau", "Niveau :", choices = "Chargement..."),
    selectizeInput("poste", "Poste :", choices = "Chargement...", multiple = FALSE),
    #sliderInput("min_minutes", "Minutes jouées minimum :", min = 0,max = 3500, value = 500),
@@ -106,21 +106,25 @@ page_navbar(
      width = 12,
      
      # STAT DES JOUEURS
-     uiOutput("layout_profils",class = "bg-primary text-dark"),
-     uiOutput("layout_stats"),
+     #uiOutput("layout_profils",class = "bg-primary text-dark"),
+     uiOutput("stats_saison_j1"),
      
      br(),
+     
+     uiOutput("stats_saison_j2"),
      
      # GRAPHIQUE TOILE D'ARAIGNÉ
      
        card(
          class = "shadow-sm mb-4",
-         card_header("🕸️ Radar des performances  ", class= " bg-primary text-darkk"),
+         card_header("🕸️ Radar des performances athlétiques ", class= " bg-primary text-darkk"),
          card_body(
-           plotlyOutput("radar_chart", height = "500px") 
+           plotlyOutput("radar_chart", height = "500px")  
          )
        ),
-     ("le graphique de radar compare les performances d'un joueur sélectionné à celles des joueurs du même poste, en affichant plusieurs statistiques sur un même graphique. Chaque axe du radar représente une statistique différente.")
+     #("Ce graphique de radar compare les performances d'un joueur sélectionné à celles des joueurs du même poste, en affichant plusieurs statistiques sur un même graphique. Chaque axe du radar représente une statistique différente.")
+     
+     
        
        
        
@@ -152,6 +156,19 @@ page_navbar(
    ) 
  ),
  
+ #nav_panel(
+  # title = "Fiche individuelle",
+   #value = "onglet_stat",
+   
+  # mainPanel(
+   #  width = 15,
+     
+     #uiOutput("layout_profils",class = "bg-primary text-dark"),
+     #uiOutput("stats_saison_j1"),
+     
+     
+     #)
+   #),
  nav_panel(
    title = "Données brutes",
    value = "onglet_stat",
@@ -160,6 +177,6 @@ page_navbar(
      width = 12,
      
      DTOutput("table_donnees")
-     )
-   ),
+   )
+ ),
  )
