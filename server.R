@@ -39,6 +39,19 @@ function(input, output, session) {
     return(data)
   })
   
+  observeEvent(input$mes_onglets, {
+    # Si on est sur l'onglet stat ET qu'aucun joueur n'est encore sélectionné
+    if (input$mes_onglets == "onglet_stat" && (is.null(input$joueur1) || input$joueur1 == "")) {
+      showNotification(
+        ui = HTML("N'oubliez pas de sélectionner un joueur dans la barre latérale à gauche !"),
+        type = "message",     # Style de la bulle (bleu classique)
+        duration = 10,         # Disparaît après 10 secondes
+        closeButton = TRUE,
+        id = "bulle_rappel"  
+      )
+    }
+  }, ignoreInit = TRUE)
+  
   # Récupération des données lié à un joueur selectionné
   data_j1 <- reactive({
     req(input$joueur1)
@@ -85,7 +98,7 @@ function(input, output, session) {
                 choices = c("Tous", sort(unique(df$Niveau))))
   })
   
-  # 2. MENU : Choix du nom du Joueur 2 (FILTRÉ PAR L'ÉQUIPE !)
+  # Selection joueur  2
   output$select_joueur2 <- renderUI({
     req(input$activer_comp, input$joueur1, input$niveau_j2) 
     
@@ -118,7 +131,6 @@ function(input, output, session) {
   
   
   output$radar_chart <- renderPlotly({
-    
     req(input$joueur1)
     
     # 1. Sélection des statistiques
@@ -239,7 +251,7 @@ function(input, output, session) {
     temps_jeu <- sum(infos$TEMPS.DE.JEU, na.rm = TRUE)
     
     # Alerte si temps de jeu non significatif
-    alerte_temps <- if (temps_jeu < 250) {
+    alerte_temps <- if (temps_jeu < 250 || nb_matchs < 6) {
       div(
         style = "background-color: #fff3cd !important; color: #856404 !important; 
                border: 1px solid #ffeeba !important; border-radius: 4px; 
@@ -250,6 +262,13 @@ function(input, output, session) {
     } else {
       NULL
     }
+    alerte_gardien <- if (poste_joueur == "GB") {
+      div(
+        style = "background-color: #cce5ff !important; color: #004085 !important; border: 1px solid #b8daff !important; border-radius: 4px; padding: 8px; margin-bottom: 15px; font-size: 0.85rem; display: flex; align-items: center;",
+        span("🧤", style = "margin-right: 8px; font-size: 1.1rem;"),
+        "Profil Gardien"
+      )
+    } else { NULL }
     
     # Arrondi à 0 décimale pour les mètres, et formatage des milliers (ex: 11 500)
     dist_moy <- round(mean(infos$TOTAL.DISTANCE, na.rm = TRUE), 0)
@@ -278,7 +297,8 @@ function(input, output, session) {
       
       card_body(
         class = "pt-4 pb-4",
-        alerte_temps, # Affiche l'alerte si nécessaire
+        alerte_temps,# Affiche l'alerte si nécessaire
+        alerte_gardien,
         fluidRow(
           
           column(3, class = "text-center border-end", 
@@ -326,7 +346,7 @@ function(input, output, session) {
     temps_jeu <- sum(infos$TEMPS.DE.JEU, na.rm = TRUE)
     
     # Alerte si temps de jeu non significatif
-    alerte_temps <- if (temps_jeu < 250) {
+    alerte_temps <- if (temps_jeu < 250|| nb_matchs < 6) {
       div(
         style = "background-color: #fff3cd !important; color: #856404 !important; 
                border: 1px solid #ffeeba !important; border-radius: 4px; 
@@ -337,6 +357,14 @@ function(input, output, session) {
     } else {
       NULL
     }
+    
+    alerte_gardien <- if (grepl("GB", tolower(poste_joueur))) {
+      div(
+        style = "background-color: #cce5ff !important; color: #004085 !important; border: 1px solid #b8daff !important; border-radius: 4px; padding: 8px; margin-bottom: 15px; font-size: 0.85rem; display: flex; align-items: center;",
+        span("🧤", style = "margin-right: 8px; font-size: 1.1rem;"),
+        "Profil Gardien"
+      )
+    } else { NULL }
     
     dist_moy <- round(mean(infos$TOTAL.DISTANCE, na.rm = TRUE), 0)
     dist_moy_format <- format(dist_moy, big.mark = " ", scientific = FALSE)
@@ -362,7 +390,8 @@ function(input, output, session) {
       
       card_body(
         class = "pt-4 pb-4",
-        alerte_temps, # Affiche l'alerte si nécessaire
+        alerte_temps,
+        alerte_gardien,# Affiche l'alerte si nécessaire
         fluidRow(
           column(3, class = "text-center border-end", 
                  p("Matchs joués", class = "text-dark mb-1 fs-6"), 
